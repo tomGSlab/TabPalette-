@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TabPaletté</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="app-header">
+        <div class="header-left">
+          <h1>TabPaletté🎨</h1>
+          <span class="subtitle">Paint Your Digital Workspace.</span>
+        </div>
+        <div class="header-right">
+          <button id="tidy-up-btn" class="btn btn-secondary" title="Auto-align groups">
+            ✨ Tidy Up
+          </button>
+          <button id="add-note-btn" class="btn btn-secondary">
+            ＋ Add Note
+          </button>
+          <button id="add-group-btn" class="btn btn-secondary">
+            ＋ Add Group
+          </button>
+          <button id="add-link-btn" class="btn btn-primary">＋ Add Link</button>
+      </header>
+
+      <main id="bento-grid" class="bento-grid">
+        <!-- Groups will be rendered here dynamically -->
+      </main>
+    </div>
+
+    <!-- Modal for Adding Link -->
+    <div id="add-link-modal" class="modal hidden">
+      <div class="modal-content bento-card">
+        <h2>Add New Link</h2>
+        <div class="form-group">
+          <label for="link-group-select">Group</label>
+          <select id="link-group-select"></select>
+        </div>
+        <div class="form-group">
+          <label for="link-title">Title</label>
+          <input type="text" id="link-title" placeholder="GitHub" />
+        </div>
+        <div class="form-group">
+          <label for="link-url">URL</label>
+          <input type="url" id="link-url" placeholder="https://github.com" />
+        </div>
+        <div class="modal-actions">
+          <button id="fetch-current-tab-btn" class="btn btn-secondary">
+            Get Current Tab
+          </button>
+          <div class="spacer"></div>
+          <button id="cancel-link-btn" class="btn btn-text">Cancel</button>
+          <button id="save-link-btn" class="btn btn-primary">Save link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Editing Link -->
+    <div id="edit-link-modal" class="modal hidden">
+      <div class="modal-content bento-card">
+        <h2>Edit Link</h2>
+        <input type="hidden" id="edit-link-id" />
+        <input type="hidden" id="edit-link-group-id" />
+        <div class="form-group">
+          <label for="edit-link-title">Title</label>
+          <input type="text" id="edit-link-title" placeholder="GitHub" />
+        </div>
+        <div class="form-group">
+          <label for="edit-link-url">URL</label>
+          <input type="url" id="edit-link-url" placeholder="https://github.com" />
+        </div>
+        <div class="modal-actions">
+          <div class="spacer"></div>
+          <button id="cancel-edit-link-btn" class="btn btn-text">Cancel</button>
+          <button id="save-edit-link-btn" class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Adding Group -->
+    <div id="add-group-modal" class="modal hidden">
+      <div class="modal-content bento-card">
+        <h2>Add New Group</h2>
+        <div class="form-group">
+          <label for="group-title">Group Title</label>
+          <input
+            type="text"
+            id="group-title"
+            placeholder="Work, Research, etc."
+          />
+        </div>
+        <div class="modal-actions">
+          <button id="cancel-group-btn" class="btn btn-text">Cancel</button>
+          <button id="save-group-btn" class="btn btn-primary">
+            Create Group
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="sortable.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
