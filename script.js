@@ -247,10 +247,30 @@ function render() {
           <button class="action-btn delete-btn" title="Delete Link">&#10005;</button>
         </div>
         <img src="${getFaviconUrl(link.url)}" class="link-favicon" alt="" loading="lazy">
-        <a href="${escapeHTML(link.url)}" class="link-content" target="_blank">
+        <div class="link-content" data-url="${escapeHTML(link.url)}">
           <span class="link-title">${escapeHTML(link.title)}</span>
-        </a>
+        </div>
       `;
+
+      // Custom drag vs click detection for navigation
+      let startX = 0, startY = 0, isDragging = false;
+      li.addEventListener("mousedown", (e) => {
+        if (e.target.closest(".link-actions")) return;
+        startX = e.clientX;
+        startY = e.clientY;
+        isDragging = false;
+      });
+      li.addEventListener("mousemove", (e) => {
+        if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+          isDragging = true;
+        }
+      });
+      li.addEventListener("click", (e) => {
+        if (e.target.closest(".link-actions")) return;
+        if (!isDragging) {
+          window.open(link.url, "_blank");
+        }
+      });
 
       li.querySelector(".delete-btn").addEventListener("click", (e) => {
         e.preventDefault();
@@ -499,18 +519,42 @@ function openAddLinkModal() {
   inputLinkTitle.value = "";
   inputLinkUrl.value = "";
 
-  // Populate groups dropdown
-  selectLinkGroup.innerHTML = "";
+  // Populate custom groups dropdown
+  const customSelectDropdown = document.getElementById("custom-link-group-select");
+  const selectSelected = customSelectDropdown.querySelector(".select-selected");
+  const selectItems = customSelectDropdown.querySelector(".select-items");
+  const hiddenGroupInput = document.getElementById("link-group-select");
+
+  selectItems.innerHTML = "";
   if (appData.groups.length === 0) {
     alert("Please create a group first!");
     return;
   }
 
-  appData.groups.forEach((g) => {
-    const opt = document.createElement("option");
-    opt.value = g.id;
-    opt.textContent = g.title;
-    selectLinkGroup.appendChild(opt);
+  // Handle dropdown toggle explicitly inside modal open setup to refresh
+  selectSelected.onclick = (e) => {
+    e.stopPropagation(); // prevent document listener from immediately closing it
+    customSelectDropdown.classList.toggle("active");
+    selectItems.classList.toggle("select-hide");
+  };
+
+  appData.groups.forEach((g, index) => {
+    const item = document.createElement("div");
+    item.textContent = g.title;
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      hiddenGroupInput.value = g.id;
+      selectSelected.innerHTML = `${escapeHTML(g.title)} <span style="font-size:10px;">▼</span>`;
+      customSelectDropdown.classList.remove("active");
+      selectItems.classList.add("select-hide");
+    });
+    selectItems.appendChild(item);
+
+    // Default select first group
+    if (index === 0) {
+      hiddenGroupInput.value = g.id;
+      selectSelected.innerHTML = `${escapeHTML(g.title)} <span style="font-size:10px;">▼</span>`;
+    }
   });
 
   modalAddLink.classList.remove("hidden");
@@ -745,7 +789,18 @@ btnSaveEditLink.addEventListener("click", () => {
 
 
 
-// Close modals on background click
+// Close modals on background click, and custom selects on body click
+document.addEventListener("click", (e) => {
+  // Close Custom Selects
+  const customSelects = document.querySelectorAll(".custom-select");
+  customSelects.forEach((cs) => {
+    if (!cs.contains(e.target)) {
+      cs.classList.remove("active");
+      cs.querySelector(".select-items").classList.add("select-hide");
+    }
+  });
+});
+
 document.querySelectorAll(".modal").forEach((modal) => {
   modal.addEventListener("mousedown", (e) => {
     if (e.target === modal) {

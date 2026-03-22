@@ -674,3 +674,78 @@ h1 {
 .spacer {
   flex-grow: 1;
 }
+
+/* Custom Select Dropdown */
+.custom-select-container {
+  position: relative;
+}
+
+.custom-select {
+  position: relative;
+  user-select: none;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.custom-select:hover, .custom-select.active {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.select-selected {
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.select-selected span {
+  transition: transform 0.2s;
+}
+
+.custom-select.active .select-selected span {
+  transform: rotate(180deg);
+}
+
+.select-items {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  max-height: 180px;
+  overflow-y: auto;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity 0.2s, transform 0.2s, visibility 0s linear;
+}
+
+.select-items.select-hide {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 0.2s, transform 0.2s, visibility 0s linear 0.2s;
+}
+
+.select-items div {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: background-color 0.15s;
+}
+
+.select-items div:hover {
+  background-color: var(--card-bg-hover);
+}

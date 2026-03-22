@@ -41,9 +41,13 @@
     <div id="add-link-modal" class="modal hidden">
       <div class="modal-content bento-card">
         <h2>Add New Link</h2>
-        <div class="form-group">
-          <label for="link-group-select">Group</label>
-          <select id="link-group-select"></select>
+        <div class="form-group custom-select-container">
+          <label>Group</label>
+          <div class="custom-select" id="custom-link-group-select">
+            <div class="select-selected">Select a group... <span style="font-size:10px;">▼</span></div>
+            <div class="select-items select-hide"></div>
+          </div>
+          <input type="hidden" id="link-group-select" />
         </div>
         <div class="form-group">
           <label for="link-title">Title</label>
