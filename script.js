@@ -339,11 +339,27 @@ function render() {
           e.stopPropagation(); // prevent drag
           note.color = c;
           noteEl.className = `sticky-note ${note.color}`;
+          if (note.isPinned) noteEl.classList.add("is-pinned");
           saveData();
         });
         picker.appendChild(dot);
       });
       
+      // Pin Button for Notes
+      const pinBtn = document.createElement("button");
+      pinBtn.className = "pin-group-btn";
+      pinBtn.innerHTML = "📌";
+      pinBtn.title = note.isPinned ? "Unpin Note" : "Pin Note";
+      if (note.isPinned) noteEl.classList.add("is-pinned");
+      
+      pinBtn.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+        note.isPinned = !note.isPinned;
+        noteEl.classList.toggle("is-pinned", note.isPinned);
+        pinBtn.title = note.isPinned ? "Unpin Note" : "Pin Note";
+        saveData();
+      });
+
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "delete-group-btn";
       deleteBtn.innerHTML = "&#10005;";
@@ -357,6 +373,7 @@ function render() {
       });
 
       controls.appendChild(picker);
+      controls.appendChild(pinBtn);
       controls.appendChild(deleteBtn);
       header.appendChild(controls);
 
@@ -586,72 +603,148 @@ function closeEditLinkModal() {
 
 // Event Listeners
 btnTidyUp.addEventListener("click", () => {
-  const allCards = Array.from(bentoGrid.children).filter(el => el.classList.contains('bento-card') || el.classList.contains('sticky-note'));
-  if (allCards.length === 0) return;
+  const allDOMCards = Array.from(bentoGrid.children).filter(el => el.classList.contains('bento-card') || el.classList.contains('sticky-note'));
+  if (allDOMCards.length === 0) return;
 
-  const cardsToMove = allCards.filter(c => !c.classList.contains('is-pinned'));
-  if (cardsToMove.length === 0) return;
-
-  cardsToMove.forEach(c => c.classList.add('animating'));
-
-  const containerWidth = bentoGrid.clientWidth;
-  const cardWidth = 320;
-  const gap = 24;
-  const cols = Math.max(1, Math.floor((containerWidth + gap) / (cardWidth + gap)));
-
-  // Combine ONLY unpinned groups and notes for sorting
-  let unpinnedItems = [
-    ...appData.groups.filter(g => !g.isPinned),
-    ...(appData.notes || []) // Notes don't have pinned state yet
-  ];
+  const containerWidth = bentoGrid.clientWidth || window.innerWidth - 32;
+  const GRID_W = 340; // 320px card + 20px gap
+  const GRID_H = 120; // 120px base row unit
   
-  // Sort items based on their current DOM visual positions
-  unpinnedItems.sort((a, b) => (a.y * 1000 + a.x) - (b.y * 1000 + b.x));
-
-  const colHeights = new Array(cols).fill(0);
-
-  // Initialize colHeights with pinned items to avoid overlapping them (basic collision avoidance)
-  appData.groups.filter(g => g.isPinned).forEach(g => {
-    const colIndex = Math.min(cols - 1, Math.max(0, Math.floor((g.x + cardWidth / 2) / (cardWidth + gap))));
-    const domCard = bentoGrid.querySelector(`[data-group-id="${g.id}"]`);
-    if (domCard) {
-      const bottomEdge = g.y + domCard.offsetHeight;
-      if (bottomEdge > colHeights[colIndex]) {
-        colHeights[colIndex] = bottomEdge + gap;
+  const cols = Math.max(1, Math.floor(containerWidth / GRID_W));
+  const grid = [];
+  
+  function isOccupied(col, row, spanCols, spanRows) {
+    if (col < 0 || col + spanCols > cols) return true; // Bounds check
+    for (let c = col; c < col + spanCols; c++) {
+      for (let r = row; r < row + spanRows; r++) {
+        if (grid[c] && grid[c][r]) return true;
       }
+    }
+    return false;
+  }
+  
+  function markOccupied(col, row, spanCols, spanRows) {
+    for (let c = col; c < col + spanCols; c++) {
+      if (!grid[c]) grid[c] = [];
+      for (let r = row; r < row + spanRows; r++) {
+        grid[c][r] = true;
+      }
+    }
+  }
+
+  allDOMCards.forEach(c => c.classList.add('animating'));
+
+  const allItems = [
+    ...appData.groups.map(g => ({...g, type: 'group'})),
+    ...(appData.notes || []).map(n => ({...n, type: 'note'}))
+  ];
+
+  const pinnedItems = allItems.filter(i => i.isPinned);
+  const unpinnedGroups = allItems.filter(i => !i.isPinned && i.type === 'group');
+  const unpinnedNotes = allItems.filter(i => !i.isPinned && i.type === 'note');
+
+  // Sort unpinned items by unique ID to guarantee absolute stability
+  unpinnedGroups.sort((a,b) => a.id.localeCompare(b.id));
+  unpinnedNotes.sort((a,b) => a.id.localeCompare(b.id));
+
+  // 1. Plan B: Snap Pinned Items to Grid
+  pinnedItems.forEach(item => {
+    const isNote = item.type === 'note';
+    const domCard = bentoGrid.querySelector(isNote ? `[data-note-id="${item.id}"]` : `[data-group-id="${item.id}"]`);
+    if (!domCard) return;
+
+    let domW = domCard.offsetWidth;
+    let domH = domCard.offsetHeight;
+
+    let spanCols = isNote ? Math.max(1, Math.ceil((domW + 10) / GRID_W)) : 1;
+    let spanRows = Math.max(1, Math.ceil((domH + 10) / GRID_H));
+
+    let targetCol = Math.max(0, Math.min(cols - spanCols, Math.round(item.x / GRID_W)));
+    let targetRow = Math.max(0, Math.round(item.y / GRID_H));
+
+    // Collision fallback for overlapping pinned items
+    while (isOccupied(targetCol, targetRow, spanCols, spanRows)) {
+      targetRow++; // Shift down if user put multiple pinned items in the same spot
+    }
+
+    markOccupied(targetCol, targetRow, spanCols, spanRows);
+    
+    item.x = targetCol * GRID_W;
+    item.y = targetRow * GRID_H;
+    
+    domCard.style.left = `${item.x}px`;
+    domCard.style.top = `${item.y}px`;
+
+    // Sync original data Reference
+    if (isNote) {
+       let n = appData.notes.find(nn=>nn.id === item.id);
+       if(n){ n.x=item.x; n.y=item.y; }
+    } else {
+       let g = appData.groups.find(gg=>gg.id === item.id);
+       if(g){ g.x=item.x; g.y=item.y; }
     }
   });
 
-  unpinnedItems.forEach((item) => {
-    let minCol = 0;
-    let minH = colHeights[0];
-    for (let i = 1; i < cols; i++) {
-      if (colHeights[i] < minH) {
-        minH = colHeights[i];
-        minCol = i;
+  // 2. Tidy Unpinned Groups (Left-to-Right Preference)
+  unpinnedGroups.forEach(item => {
+    const domCard = bentoGrid.querySelector(`[data-group-id="${item.id}"]`);
+    if (!domCard) return;
+
+    let domH = domCard.offsetHeight;
+    let spanCols = 1; // Groups are always 1 col
+    let spanRows = Math.max(1, Math.ceil((domH + 10) / GRID_H));
+
+    let placed = false;
+    for (let r = 0; r < 200 && !placed; r++) {
+      for (let c = 0; c < cols && !placed; c++) {
+        if (!isOccupied(c, r, spanCols, spanRows)) {
+          markOccupied(c, r, spanCols, spanRows);
+          item.x = c * GRID_W;
+          item.y = r * GRID_H;
+          placed = true;
+        }
       }
     }
 
-    const isNote = appData.notes && appData.notes.includes(item);
-    const domCard = bentoGrid.querySelector(isNote ? `[data-note-id="${item.id}"]` : `[data-group-id="${item.id}"]`);
-    const itemHeight = domCard ? domCard.offsetHeight : (isNote ? 200 : 200);
+    domCard.style.left = `${item.x}px`;
+    domCard.style.top = `${item.y}px`;
+    let g = appData.groups.find(gg=>gg.id === item.id);
+    if(g){ g.x=item.x; g.y=item.y; }
+  });
 
-    // Simplistic wrap logic for tidy up, though width varies
-    item.x = minCol * (cardWidth + gap);
-    item.y = minH;
+  // 3. Tidy Unpinned Notes (Right-to-Left Preference)
+  unpinnedNotes.forEach(item => {
+    const domCard = bentoGrid.querySelector(`[data-note-id="${item.id}"]`);
+    if (!domCard) return;
 
-    if (domCard) {
-      domCard.style.left = `${item.x}px`;
-      domCard.style.top = `${item.y}px`;
+    let domW = domCard.offsetWidth;
+    let domH = domCard.offsetHeight;
+    let spanCols = Math.max(1, Math.ceil((domW + 10) / GRID_W)); 
+    let spanRows = Math.max(1, Math.ceil((domH + 10) / GRID_H));
+
+    let placed = false;
+    for (let r = 0; r < 200 && !placed; r++) {
+      // Search from rightmost column available to this span
+      for (let c = cols - spanCols; c >= 0 && !placed; c--) {
+        if (!isOccupied(c, r, spanCols, spanRows)) {
+          markOccupied(c, r, spanCols, spanRows);
+          item.x = c * GRID_W;
+          item.y = r * GRID_H;
+          placed = true;
+        }
+      }
     }
 
-    colHeights[minCol] += itemHeight + gap;
+    domCard.style.left = `${item.x}px`;
+    domCard.style.top = `${item.y}px`;
+    let n = appData.notes.find(nn=>nn.id === item.id);
+    if(n){ n.x=item.x; n.y=item.y; }
   });
 
   saveData();
 
   setTimeout(() => {
-    cardsToMove.forEach(c => c.classList.remove('animating'));
+    allDOMCards.forEach(c => c.classList.remove('animating'));
   }, 400);
 });
 

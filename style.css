@@ -182,7 +182,7 @@ h1 {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-color);
-  transition: box-shadow 0.2s, transform 0.2s, left 0.4s cubic-bezier(0.4, 0, 0.2, 1), top 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease-in-out, border-color 0.3s ease;
+  transition: box-shadow 0.2s, transform 0.2s, left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease-in-out, border-color 0.3s ease;
 }
 
 .bento-card.is-pinned {
@@ -195,7 +195,8 @@ h1 {
   cursor: default;
 }
 
-.bento-card.animating {
+.bento-card.animating,
+.sticky-note.animating {
   transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, top 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
@@ -276,7 +277,8 @@ h1 {
   filter: grayscale(100%);
 }
 
-.bento-card.is-pinned .pin-group-btn {
+.bento-card.is-pinned .pin-group-btn,
+.sticky-note.is-pinned .pin-group-btn {
   opacity: 1; /* Full opacity when pinned */
   filter: none;
 }
@@ -472,7 +474,7 @@ h1 {
   padding: 12px;
   resize: both;
   overflow: hidden;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s, left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease-in-out;
 }
 
 /* Custom Resize Handle (works in webkit) */
