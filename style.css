@@ -548,27 +548,49 @@ h1 {
   border: none;
   resize: none;
   font-family: inherit;
-  font-weight: 600; /* Bold typography */
-  font-style: italic; /* Set as italic */
+  font-weight: 500; /* Medium typography for better caret rendering */
   color: inherit;
   font-size: 15px;
   line-height: 1.6;
-  outline: none;
-  padding: 0 4px; /* Internal padding optimized for smaller space */
-  transform: rotate(-0.5deg); /* Playful tilt */
+  padding: 4px 6px; /* Increased internal padding */
+  position: relative;
+  z-index: 1;
+}
+
+.note-textarea:focus {
+  outline: none; /* Only remove generic outline on focus */
 }
 
 /* Color Classes */
 .note-lemon { background-color: var(--note-lemon) !important; color: var(--note-text-dark) !important; }
+.note-lemon .note-textarea { caret-color: #000000; }
+
 .note-sky { background-color: var(--note-sky) !important; color: var(--note-text-dark) !important; }
+.note-sky .note-textarea { caret-color: #000000; }
+
 .note-rose { background-color: var(--note-rose) !important; color: var(--note-text-dark) !important; }
+.note-rose .note-textarea { caret-color: #000000; }
+
 .note-mint { background-color: var(--note-mint) !important; color: var(--note-text-dark) !important; }
+.note-mint .note-textarea { caret-color: #000000; }
+
 .note-lavender { background-color: var(--note-lavender) !important; color: var(--note-text-dark) !important; }
+.note-lavender .note-textarea { caret-color: #000000; }
+
 .note-dark-navy { background-color: var(--note-dark-navy) !important; color: var(--note-text-light) !important; }
+.note-dark-navy .note-textarea { caret-color: #ffffff; }
+
 .note-dark-bordeaux { background-color: var(--note-dark-bordeaux) !important; color: var(--note-text-light) !important; }
+.note-dark-bordeaux .note-textarea { caret-color: #ffffff; }
+
 .note-dark-moss { background-color: var(--note-dark-moss) !important; color: var(--note-text-light) !important; }
+.note-dark-moss .note-textarea { caret-color: #ffffff; }
+
 .note-dark-charcoal { background-color: var(--note-dark-charcoal) !important; color: var(--note-text-light) !important; }
+.note-dark-charcoal .note-textarea { caret-color: #ffffff; }
+
 .note-dark-amber { background-color: var(--note-dark-amber) !important; color: var(--note-text-light) !important; }
+.note-dark-amber .note-textarea { caret-color: #ffffff; }
 
 /* Modals */
 .modal {

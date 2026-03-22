@@ -45,7 +45,6 @@ const btnSaveGroup = document.getElementById("save-group-btn");
 
 const btnCancelLink = document.getElementById("cancel-link-btn");
 const btnSaveLink = document.getElementById("save-link-btn");
-const btnFetchCurrentTab = document.getElementById("fetch-current-tab-btn");
 
 const btnCancelEditLink = document.getElementById("cancel-edit-link-btn");
 const btnSaveEditLink = document.getElementById("save-edit-link-btn");
@@ -744,18 +743,7 @@ btnSaveEditLink.addEventListener("click", () => {
   }
 });
 
-btnFetchCurrentTab.addEventListener("click", () => {
-  if (typeof chrome !== "undefined" && chrome.tabs && chrome.tabs.query) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs && tabs[0]) {
-        inputLinkTitle.value = tabs[0].title || "";
-        inputLinkUrl.value = tabs[0].url || "";
-      }
-    });
-  } else {
-    alert("This feature is only available as a Chrome Extension.");
-  }
-});
+
 
 // Close modals on background click
 document.querySelectorAll(".modal").forEach((modal) => {
