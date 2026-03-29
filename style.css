@@ -29,6 +29,8 @@
   --radius-lg: 20px;
   --font-family: "Inter", system-ui, -apple-system, sans-serif;
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --card-pinned-bg: var(--card-bg);
+  --card-pinned-border: var(--border-color);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -54,6 +56,8 @@
     --note-dark-moss: #052e16;
     --note-dark-charcoal: #1f2937;
     --note-dark-amber: #78350f;
+    --card-pinned-bg: rgba(28, 28, 28, 0.8);
+    --card-pinned-border: rgba(255, 255, 255, 0.03);
   }
 }
 
@@ -186,9 +190,9 @@ h1 {
 }
 
 .bento-card.is-pinned {
-  border-color: rgba(255, 255, 255, 0.03); /* Extremely subtle border */
+  border-color: var(--card-pinned-border);
   box-shadow: none; /* Flatten the card slightly */
-  background-color: rgba(28, 28, 28, 0.8); /* Slight transparency */
+  background-color: var(--card-pinned-bg);
 }
 
 .bento-card.is-pinned .group-header {
