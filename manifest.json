@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TabPaletté",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Paint Your Digital Workspace.",
   "background": {
     "service_worker": "background.js"

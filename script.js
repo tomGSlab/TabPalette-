@@ -115,6 +115,58 @@ async function saveData() {
   }
 }
 
+// Layer Management
+function normalizeZIndexes() {
+  if (!appData) return;
+  const allItems = [
+    ...appData.groups.map(g => ({ item: g, z: g.zIndex || 0 })),
+    ...(appData.notes || []).map(n => ({ item: n, z: n.zIndex || 0 }))
+  ];
+
+  if (allItems.length === 0) return;
+
+  allItems.sort((a, b) => a.z - b.z);
+
+  // Assign sequential zIndexes 1, 2, 3...
+  allItems.forEach((obj, index) => {
+    obj.item.zIndex = index + 1;
+  });
+
+  saveData();
+}
+
+function bringToFront(item, element) {
+  let maxZ = 0;
+  
+  if (appData.groups) {
+    appData.groups.forEach(g => {
+      if (g.zIndex && g.zIndex > maxZ) maxZ = g.zIndex;
+    });
+  }
+  if (appData.notes) {
+    appData.notes.forEach(n => {
+      if (n.zIndex && n.zIndex > maxZ) maxZ = n.zIndex;
+    });
+  }
+
+  // If already at the front and absolutely the highest, do nothing to avoid redundant saves
+  let countAtMax = 0;
+  appData.groups.forEach(g => { if (g.zIndex === maxZ) countAtMax++; });
+  if (appData.notes) {
+    appData.notes.forEach(n => { if (n.zIndex === maxZ) countAtMax++; });
+  }
+
+  if (item.zIndex === maxZ && countAtMax <= 1 && maxZ > 0) {
+    return; // Already the absolute top
+  }
+
+  item.zIndex = maxZ + 1;
+  if (element) {
+    element.style.zIndex = item.zIndex;
+  }
+  saveData();
+}
+
 // Rendering
 function render() {
   bentoGrid.innerHTML = "";
@@ -136,6 +188,11 @@ function render() {
     card.dataset.groupId = group.id;
     card.style.left = `${group.x}px`;
     card.style.top = `${group.y}px`;
+    card.style.zIndex = group.zIndex || 1;
+
+    card.addEventListener("mousedown", () => {
+      bringToFront(group, card);
+    });
 
     if (group.isPinned) card.classList.add("is-pinned");
 
@@ -314,8 +371,13 @@ function render() {
       noteEl.dataset.noteId = note.id;
       noteEl.style.left = `${note.x}px`;
       noteEl.style.top = `${note.y}px`;
+      noteEl.style.zIndex = note.zIndex || 1;
       if (note.width) noteEl.style.width = `${note.width}px`;
       if (note.height) noteEl.style.height = `${note.height}px`;
+
+      noteEl.addEventListener("mousedown", () => {
+        bringToFront(note, noteEl);
+      });
 
       const header = document.createElement("div");
       header.className = "note-header";
@@ -454,14 +516,15 @@ function makeDraggable(card, header, group) {
     if (e.target.closest('.delete-group-btn') || e.target.closest('.pin-group-btn')) return;
     if (group.isPinned || card.classList.contains("is-pinned")) return; // Disable drag if pinned
     
-    // Bring to front
-    document.querySelectorAll('.bento-card').forEach(c => c.style.zIndex = 1);
-    card.style.zIndex = 10;
+    // bringToFront is handled by the mousedown listener on the card itself
     
     // Optimization: disable transitions during drag for zero lag
     card.style.transition = 'none';
 
     isDragging = true;
+    document.body.classList.add("is-dragging-card");
+    card.classList.add("dragging-element");
+
     startX = e.clientX;
     startY = e.clientY;
     initialLeft = card.offsetLeft;
@@ -494,6 +557,9 @@ function makeDraggable(card, header, group) {
   function dragEnd(e) {
     if (!isDragging) return;
     isDragging = false;
+    document.body.classList.remove("is-dragging-card");
+    card.classList.remove("dragging-element");
+
     document.removeEventListener("mousemove", drag);
     document.removeEventListener("mouseup", dragEnd);
 
@@ -907,6 +973,7 @@ document.querySelectorAll(".modal").forEach((modal) => {
 // Init
 async function init() {
   appData = await loadData();
+  normalizeZIndexes();
   render();
 
   // Listen for storage changes from other tabs to sync

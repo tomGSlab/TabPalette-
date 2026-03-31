@@ -204,11 +204,21 @@ h1 {
   transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, top 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+/* Drag State Overrides */
+body.is-dragging-card .bento-card:not(.dragging-element),
+body.is-dragging-card .sticky-note:not(.dragging-element) {
+  pointer-events: none; /* Disables hover completely for unaffected elements */
+}
+
+.dragging-element {
+  z-index: 1000000 !important; /* Always top while dragging */
+}
+
 .bento-grid .bento-card:hover {
   background-color: var(--card-bg-hover);
   box-shadow: var(--shadow-lg);
   transform: scale(1.03);
-  z-index: 10;
+  z-index: 99999 !important;
 }
 
 .group-header {
@@ -498,7 +508,7 @@ h1 {
 .sticky-note:hover {
   box-shadow: var(--shadow-lg);
   border-color: rgba(255,255,255,0.15); /* Slightly brighter border on hover */
-  z-index: 10;
+  z-index: 99999 !important;
 }
 
 .note-header {
